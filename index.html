@@ -43,13 +43,23 @@
             background-color: var(--board-bg);
             border-radius: 0.5rem;
             display: block;
+            /* Mobile responsiveness */
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 1 / 1;
+        }
+
+        /* Prevent double-tap-to-zoom on mobile controls */
+        button {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
     </style>
 </head>
-<body class="antialiased">
-    <div class="relative z-10 flex flex-col items-center">
+<body class="antialiased p-4 box-border">
+    <div class="relative z-10 flex flex-col items-center w-full">
         <!-- Scoreboard -->
-        <div class="scoreboard flex justify-between w-full max-w-md px-6 py-4 mb-4 bg-slate-900 rounded-xl shadow-[0_0_15px_rgba(0,255,255,0.2)] border border-cyan-900">
+        <div class="scoreboard flex justify-between w-full max-w-[400px] mx-auto px-6 py-4 mb-4 bg-slate-900 rounded-xl shadow-[0_0_15px_rgba(0,255,255,0.2)] border border-cyan-900">
             <div class="text-center">
                 <p class="text-xs text-cyan-400 font-bold tracking-wider uppercase mb-1">Score</p>
                 <p id="scoreEl" class="text-3xl font-bold text-white leading-none">0</p>
@@ -61,20 +71,20 @@
         </div>
 
         <!-- Game Board -->
-        <div class="game-container relative p-2 bg-black rounded-2xl">
+        <div class="game-container relative p-2 bg-black rounded-2xl w-full max-w-[400px] box-border mx-auto">
             <canvas id="gameCanvas" width="400" height="400"></canvas>
             
             <!-- Game Over Modal -->
-            <div id="gameOverModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
-                <h2 class="text-4xl font-black text-fuchsia-500 mb-2 tracking-tight drop-shadow-[0_0_10px_rgba(255,0,255,0.8)]">SYSTEM FAILURE</h2>
-                <p class="text-cyan-300 mb-6 font-medium">Data collected: <span id="finalScore" class="text-white font-bold">0</span> bytes.</p>
+            <div id="gameOverModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300 z-20">
+                <h2 class="text-3xl sm:text-4xl font-black text-fuchsia-500 mb-2 tracking-tight drop-shadow-[0_0_10px_rgba(255,0,255,0.8)] text-center">SYSTEM FAILURE</h2>
+                <p class="text-cyan-300 mb-6 font-medium text-center">Data collected: <span id="finalScore" class="text-white font-bold">0</span> bytes.</p>
                 <button id="restartBtn" class="px-8 py-3 bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-black font-bold rounded transition-all shadow-[0_0_15px_rgba(0,255,255,0.4)] cursor-pointer uppercase">
                     Reboot
                 </button>
             </div>
 
             <!-- Start Overlay -->
-            <div id="startModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center">
+            <div id="startModal" class="absolute inset-0 bg-black/80 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center z-20">
                 <button id="startBtn" class="px-8 py-3 bg-transparent border-2 border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-black font-bold rounded transition-all shadow-[0_0_15px_rgba(0,255,255,0.4)] cursor-pointer uppercase">
                     Initialize
                 </button>
@@ -84,7 +94,7 @@
     </div>
 
     <!-- Mobile Controls -->
-    <div class="mt-8 grid grid-cols-3 gap-2 w-48 md:hidden z-10 relative">
+    <div class="mt-8 grid grid-cols-3 gap-2 w-full max-w-[250px] md:hidden z-10 relative mx-auto">
         <div class="col-start-2"><button id="upBtn" class="w-full h-12 bg-slate-900 border border-cyan-800 rounded-lg active:bg-cyan-900 text-cyan-400 font-bold shadow-[0_0_10px_rgba(0,255,255,0.2)] cursor-pointer">↑</button></div>
         <div class="col-start-1"><button id="leftBtn" class="w-full h-12 bg-slate-900 border border-cyan-800 rounded-lg active:bg-cyan-900 text-cyan-400 font-bold shadow-[0_0_10px_rgba(0,255,255,0.2)] cursor-pointer">←</button></div>
         <div class="col-start-2"><button id="downBtn" class="w-full h-12 bg-slate-900 border border-cyan-800 rounded-lg active:bg-cyan-900 text-cyan-400 font-bold shadow-[0_0_10px_rgba(0,255,255,0.2)] cursor-pointer">↓</button></div>
@@ -121,34 +131,21 @@
         const snakeColor = rootStyles.getPropertyValue('--snake-color').trim() || '#0ff';
         const foodColor = rootStyles.getPropertyValue('--food-color').trim() || '#f0f';
 
-      // 1. Update resetGame to accept starting velocity parameters
-function resetGame(startX = 1, startY = 0) {
-    snake = [{x: 10, y: 10}];
-    snakeLength = 4;
-    
-    // Use the passed parameters instead of forcing 0
-    velocityX = startX;
-    velocityY = startY;
-    
-    score = 0;
-    scoreEl.innerText = score;
-    placeFood();
-    gameOverModal.classList.add('hidden');
-    gameOverModal.classList.remove('opacity-100');
-    gameOverModal.classList.add('opacity-0');
-    isPlaying = true;
-    gameLoop();
-}
-
-// 2. Update the button listeners to pass the starting direction (1, 0 = move right)
-startBtn.addEventListener("click", () => {
-    startModal.classList.add('hidden');
-    resetGame(1, 0); 
-});
-
-restartBtn.addEventListener("click", () => {
-    resetGame(1, 0); 
-});
+        // Fixed reset logic to handle velocity on startup
+        function resetGame(startX = 1, startY = 0) {
+            snake = [{x: 10, y: 10}];
+            snakeLength = 4;
+            velocityX = startX;
+            velocityY = startY;
+            score = 0;
+            scoreEl.innerText = score;
+            placeFood();
+            gameOverModal.classList.add('hidden');
+            gameOverModal.classList.remove('opacity-100');
+            gameOverModal.classList.add('opacity-0');
+            isPlaying = true;
+            gameLoop();
+        }
 
         function placeFood() {
             foodX = Math.floor(Math.random() * tileCount);
@@ -194,9 +191,8 @@ restartBtn.addEventListener("click", () => {
 
             draw();
             
-            // NEW LOGIC: Starts at 160ms (slower), drops 5ms per food:
+            // Adjusted dynamic difficulty curve (starts slower, scales down)
             let speed = Math.max(50, 160 - (score * 0.5));
-            
             gameLoopTimeout = setTimeout(gameLoop, speed);
         }
 
@@ -244,14 +240,13 @@ restartBtn.addEventListener("click", () => {
 
         document.addEventListener("keydown", changeDirection);
         
+        // Initiate movement explicitly to fix race condition crash
         startBtn.addEventListener("click", () => {
             startModal.classList.add('hidden');
-            velocityX = 1; velocityY = 0;
-            resetGame();
+            resetGame(1, 0); 
         });
         restartBtn.addEventListener("click", () => {
-            velocityX = 1; velocityY = 0;
-            resetGame();
+            resetGame(1, 0); 
         });
 
         document.getElementById('upBtn').onclick = () => { if(velocityY !== 1) { velocityX = 0; velocityY = -1; } };

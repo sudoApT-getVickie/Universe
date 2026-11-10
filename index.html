@@ -194,7 +194,9 @@ restartBtn.addEventListener("click", () => {
 
             draw();
             
-            let speed = Math.max(50, 100 - (score / 10));
+            // NEW LOGIC: Starts at 160ms (slower), drops 5ms per food:
+            let speed = Math.max(50, 160 - (score * 0.5));
+            
             gameLoopTimeout = setTimeout(gameLoop, speed);
         }
 

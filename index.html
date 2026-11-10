@@ -121,20 +121,34 @@
         const snakeColor = rootStyles.getPropertyValue('--snake-color').trim() || '#0ff';
         const foodColor = rootStyles.getPropertyValue('--food-color').trim() || '#f0f';
 
-        function resetGame() {
-            snake = [{x: 10, y: 10}];
-            snakeLength = 4;
-            velocityX = 0;
-            velocityY = 0;
-            score = 0;
-            scoreEl.innerText = score;
-            placeFood();
-            gameOverModal.classList.add('hidden');
-            gameOverModal.classList.remove('opacity-100');
-            gameOverModal.classList.add('opacity-0');
-            isPlaying = true;
-            gameLoop();
-        }
+      // 1. Update resetGame to accept starting velocity parameters
+function resetGame(startX = 1, startY = 0) {
+    snake = [{x: 10, y: 10}];
+    snakeLength = 4;
+    
+    // Use the passed parameters instead of forcing 0
+    velocityX = startX;
+    velocityY = startY;
+    
+    score = 0;
+    scoreEl.innerText = score;
+    placeFood();
+    gameOverModal.classList.add('hidden');
+    gameOverModal.classList.remove('opacity-100');
+    gameOverModal.classList.add('opacity-0');
+    isPlaying = true;
+    gameLoop();
+}
+
+// 2. Update the button listeners to pass the starting direction (1, 0 = move right)
+startBtn.addEventListener("click", () => {
+    startModal.classList.add('hidden');
+    resetGame(1, 0); 
+});
+
+restartBtn.addEventListener("click", () => {
+    resetGame(1, 0); 
+});
 
         function placeFood() {
             foodX = Math.floor(Math.random() * tileCount);
